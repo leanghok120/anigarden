@@ -13,6 +13,12 @@ type anime struct {
 	Body string `json:"description"`
 }
 
+// lol "animes"
+type (
+	errMsg    struct{ err error }
+	animesMsg struct{ animes []anime }
+)
+
 // list.item implementation
 func (a anime) Title() string {
 	return a.Name

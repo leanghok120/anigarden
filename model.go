@@ -13,12 +13,6 @@ type model struct {
 	height int
 }
 
-// lol "animes"
-type (
-	errMsg    struct{ err error }
-	animesMsg struct{ animes []anime }
-)
-
 func initialModel() model {
 	return model{}
 }
@@ -55,9 +49,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 		l.Title = "Home"
 		h, v := docStyle.GetFrameSize()
-		l.SetSize(m.width-h, m.height-v)
+		l.SetSize(m.width-h, m.height-v) // set the size of the list
 		m.list = l
 		m.loaded = true
+	case errMsg:
+		m.err = msg.err
 	}
 
 	return m, nil
