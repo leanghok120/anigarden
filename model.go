@@ -1,20 +1,18 @@
 package main
 
 import (
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type model struct {
-	list   list.Model
-	err    error
-	loaded bool
-	width  int
-	height int
+	currPage page
+	home     homeModel
+	search   searchModel
 }
 
 func initialModel() model {
-	return model{}
+	return model{currPage: homePage, home: homeModel{}, search: searchModel{}}
 }
 
 func (m model) Init() tea.Cmd {
@@ -24,38 +22,43 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if msg.String() == "ctrl+c" || msg.String() == "q" {
+		switch msg.String() {
+		case "ctrl+c", "q":
 			return m, tea.Quit
-		}
 
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		if m.loaded {
-			h, v := docStyle.GetFrameSize()
-			m.list.SetSize(msg.Width-h, msg.Height-v)
-		}
+		case "h":
+			m.currPage = homePage
+			return m, nil
 
-	case animesMsg:
-		items := make([]list.Item, len(msg.animes))
-		for i, u := range msg.animes {
-			items[i] = u
+		case "s":
+			m.currPage = searchPage
+			return m, nil
 		}
-		l := list.New(items, list.NewDefaultDelegate(), 0, 0)
-		l.Title = "Home"
-		h, v := docStyle.GetFrameSize()
-		l.SetSize(m.width-h, m.height-v) // set the size of the list
-		m.list = l
-		m.loaded = true
-
-	case errMsg:
-		m.err = msg.err
 	}
 
-	if m.loaded {
+	switch m.currPage {
+	case homePage:
 		var cmd tea.Cmd
-		m.list, cmd = m.list.Update(msg)
+		m.home, cmd = m.home.Update(msg)
+		return m, cmd
+	case searchPage:
+		var cmd tea.Cmd
+		m.search, cmd = m.search.Update(msg)
 		return m, cmd
 	}
+
 	return m, nil
+}
+
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
+
+func (m model) View() string {
+	switch m.currPage {
+	case homePage:
+		return m.home.View()
+	case searchPage:
+		return m.search.View()
+	default:
+		return "404 not found"
+	}
 }
