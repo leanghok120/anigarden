@@ -27,11 +27,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "ctrl+c" || msg.String() == "q" {
 			return m, tea.Quit
 		}
-		if m.loaded {
-			var cmd tea.Cmd
-			m.list, cmd = m.list.Update(msg)
-			return m, cmd
-		}
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -52,9 +47,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		l.SetSize(m.width-h, m.height-v) // set the size of the list
 		m.list = l
 		m.loaded = true
+
 	case errMsg:
 		m.err = msg.err
 	}
 
+	if m.loaded {
+		var cmd tea.Cmd
+		m.list, cmd = m.list.Update(msg)
+		return m, cmd
+	}
 	return m, nil
 }
