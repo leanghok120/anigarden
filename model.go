@@ -28,7 +28,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		// if in filtering or textinput focus state, avoid quiting, switch pages...
-		if m.home.list.FilterState() == list.Filtering || m.search.textInput.Focused() {
+		if m.home.list.FilterState() == list.Filtering || m.search.list.FilterState() == list.Filtering || m.search.textInput.Focused() {
 			break
 		}
 

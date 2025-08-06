@@ -130,9 +130,19 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		return s, nil
 	}
 
-	var cmd tea.Cmd
-	s.textInput, cmd = s.textInput.Update(msg)
-	return s, cmd
+	var cmds []tea.Cmd
+
+	var inputCmd tea.Cmd
+	s.textInput, inputCmd = s.textInput.Update(msg)
+	cmds = append(cmds, inputCmd)
+
+	if s.loaded {
+		var listCmd tea.Cmd
+		s.list, listCmd = s.list.Update(msg)
+		cmds = append(cmds, listCmd)
+	}
+
+	return s, tea.Batch(cmds...)
 }
 
 func (s searchModel) View() string {
@@ -140,7 +150,7 @@ func (s searchModel) View() string {
 		return docStyle.Render(s.err.Error())
 	}
 	if s.loaded {
-		return docStyle.Render(s.list.View())
+		return docStyle.Render(s.textInput.View() + "\n" + s.list.View())
 	}
 	return docStyle.Render(s.textInput.View())
 }
