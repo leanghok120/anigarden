@@ -13,7 +13,7 @@ type model struct {
 }
 
 func initialModel() model {
-	return model{currPage: homePage, home: homeModel{}, search: searchModel{}}
+	return model{currPage: homePage, home: homeModel{}, search: initSearchModel()}
 }
 
 func (m model) Init() tea.Cmd {
@@ -23,8 +23,8 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// if in filtering state, avoid quiting, switch pages...
-		if m.currPage == homePage && m.home.list.FilterState() == list.Filtering {
+		// if in filtering or textinput focus state, avoid quiting, switch pages...
+		if m.home.list.FilterState() == list.Filtering || m.search.textInput.Focused() {
 			break
 		}
 
@@ -38,6 +38,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "s":
 			m.currPage = searchPage
+			m.search.textInput.Focus()
 			return m, nil
 		}
 	}

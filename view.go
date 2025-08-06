@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -12,6 +13,7 @@ const (
 	searchPage
 )
 
+// home page
 type homeModel struct {
 	list   list.Model
 	err    error
@@ -65,12 +67,36 @@ func (h homeModel) View() string {
 	return docStyle.Render(h.list.View())
 }
 
-type searchModel struct{}
+// search page
+type searchModel struct {
+	textInput textinput.Model
+}
+
+func initSearchModel() searchModel {
+	ti := textinput.New()
+	ti.Placeholder = "search anime"
+	ti.Width = 20
+	ti.Cursor.Blink = true
+	return searchModel{textInput: ti}
+}
 
 func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
-	return s, nil
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter:
+			return s, nil
+		case tea.KeyEsc:
+			s.textInput.Blur()
+			return s, nil
+		}
+	}
+
+	var cmd tea.Cmd
+	s.textInput, cmd = s.textInput.Update(msg)
+	return s, cmd
 }
 
 func (s searchModel) View() string {
-	return docStyle.Render("search page")
+	return docStyle.Render(s.textInput.View())
 }
