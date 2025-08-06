@@ -64,12 +64,20 @@ func (h homeModel) View() string {
 	if !h.loaded {
 		return docStyle.Render("🌱 loading anime list...")
 	}
+	if h.err != nil {
+		return docStyle.Render(h.err.Error())
+	}
 	return docStyle.Render(h.list.View())
 }
 
 // search page
 type searchModel struct {
 	textInput textinput.Model
+	list      list.Model
+	err       error
+	loaded    bool
+	width     int
+	height    int
 }
 
 func initSearchModel() searchModel {
@@ -85,11 +93,41 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			return s, nil
+			name := s.textInput.Value()
+			return s, func() tea.Msg { return searchAnime(name) }
+
 		case tea.KeyEsc:
 			s.textInput.Blur()
 			return s, nil
 		}
+
+	case tea.WindowSizeMsg:
+		s.width = msg.Width
+		s.height = msg.Height
+		if s.loaded {
+			w, h := docStyle.GetFrameSize()
+			s.list.SetSize(s.width-w, s.height-h)
+		}
+
+	case searchResultsMsg:
+		items := make([]list.Item, len(msg.animes))
+		for i, a := range msg.animes {
+			items[i] = a
+		}
+		l := list.New(items, list.NewDefaultDelegate(), 10, 10)
+		l.Title = "Results"
+
+		// Get doc padding
+		w, v := docStyle.GetFrameSize()
+		l.SetSize(s.width-w, s.height-v)
+
+		s.list = l
+		s.textInput.Blur()
+		s.loaded = true
+
+	case errMsg:
+		s.err = msg.err
+		return s, nil
 	}
 
 	var cmd tea.Cmd
@@ -98,5 +136,11 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 }
 
 func (s searchModel) View() string {
+	if s.err != nil {
+		return docStyle.Render(s.err.Error())
+	}
+	if s.loaded {
+		return docStyle.Render(s.list.View())
+	}
 	return docStyle.Render(s.textInput.View())
 }

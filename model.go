@@ -10,6 +10,7 @@ type model struct {
 	currPage page
 	home     homeModel
 	search   searchModel
+	win      tea.WindowSizeMsg
 }
 
 func initialModel() model {
@@ -22,6 +23,9 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.win = msg
+
 	case tea.KeyMsg:
 		// if in filtering or textinput focus state, avoid quiting, switch pages...
 		if m.home.list.FilterState() == list.Filtering || m.search.textInput.Focused() {
@@ -39,7 +43,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			m.currPage = searchPage
 			m.search.textInput.Focus()
-			return m, nil
+			return m, func() tea.Msg { return m.win } // send tea.WindowSizeMsg to search model
 		}
 	}
 
