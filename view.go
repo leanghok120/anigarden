@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -43,6 +44,14 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		// update list size
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(h.width-w, h.height-v)
+
+		// add custom keybindings to help menu
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Focus}
+		}
 
 		h.list = l
 		h.loaded = true
@@ -120,6 +129,14 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		}
 		l := list.New(items, list.NewDefaultDelegate(), 10, 10)
 		l.Title = "Results"
+
+		// add custom keybindings to help menu
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Focus}
+		}
 
 		// Get doc padding
 		w, v := docStyle.GetFrameSize()
