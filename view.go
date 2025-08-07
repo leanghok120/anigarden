@@ -91,13 +91,17 @@ func initSearchModel() searchModel {
 func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEnter:
+		switch msg.String() {
+		case "enter":
 			name := s.textInput.Value()
 			return s, func() tea.Msg { return searchAnime(name) }
 
-		case tea.KeyEsc:
+		case "esc":
 			s.textInput.Blur()
+			return s, nil
+
+		case "t":
+			s.textInput.Focus()
 			return s, nil
 		}
 
