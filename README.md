@@ -6,7 +6,8 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 
 - [x] home view
 - [x] search view
-- [ ] anime view
+- [ ] anime view (in progress, got info anime to display anime name)
+- [ ] style the info page and maybe add the anime poster image (copy lipgloss style from bubbles)
 - [ ] watch anime
 
 ## dev notes
