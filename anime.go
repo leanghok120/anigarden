@@ -11,8 +11,10 @@ import (
 // api returns a desc in the home route but doesn't return
 // a desc in the search route
 type anime struct {
-	Name string `json:"name"`
-	Body string `json:"description"`
+	ID     string   `json:"id"`
+	Name   string   `json:"name"`
+	Body   string   `json:"description"`
+	Genres []string `json:"genres"`
 }
 
 // lol "animes"
@@ -21,6 +23,7 @@ type (
 	errMsg           struct{ err error }
 	animesMsg        struct{ animes []anime }
 	searchResultsMsg struct{ animes []anime }
+	animeInfoMsg     struct{ anime anime }
 )
 
 // list.item implementation
@@ -85,4 +88,28 @@ func searchAnime(name string) tea.Msg {
 	}
 
 	return searchResultsMsg{response.Data.Animes}
+}
+
+func fetchAnimeInfo(id string) tea.Msg {
+	res, err := http.Get(url + "/qtip/" + id)
+	if err != nil {
+		return errMsg{err}
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	var response struct {
+		Data struct {
+			Anime anime `json:"anime"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return errMsg{err}
+	}
+
+	return animeInfoMsg{response.Data.Anime}
 }

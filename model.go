@@ -10,6 +10,7 @@ type model struct {
 	currPage page
 	home     homeModel
 	search   searchModel
+	info     infoModel
 	win      tea.WindowSizeMsg
 }
 
@@ -25,6 +26,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.win = msg
+
+	case animeInfoMsg:
+		m.info = initInfoModel(msg.anime)
+		m.currPage = infoPage
+		return m, nil
 
 	case tea.KeyMsg:
 		// if in filtering or textinput focus state, avoid quiting, switch pages...
@@ -56,6 +62,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.search, cmd = m.search.Update(msg)
 		return m, cmd
+
+	case infoPage:
+		var cmd tea.Cmd
+		m.info, cmd = m.info.Update(msg)
+		return m, cmd
 	}
 
 	return m, nil
@@ -69,6 +80,8 @@ func (m model) View() string {
 		return m.home.View()
 	case searchPage:
 		return m.search.View()
+	case infoPage:
+		return m.info.View()
 	default:
 		return "404 not found"
 	}

@@ -12,7 +12,16 @@ type page int
 const (
 	homePage page = iota
 	searchPage
+	infoPage
 )
+
+// function to get selected anime and shove it into fetchAnimeInfo
+func handleAnimeSelection(l list.Model) tea.Cmd {
+	if selected, ok := l.SelectedItem().(anime); ok {
+		return func() tea.Msg { return fetchAnimeInfo(selected.ID) }
+	}
+	return nil
+}
 
 // home page
 type homeModel struct {
@@ -55,6 +64,11 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 
 		h.list = l
 		h.loaded = true
+
+	case tea.KeyMsg:
+		if msg.String() == " " {
+			return h, handleAnimeSelection(h.list)
+		}
 
 	case errMsg:
 		h.err = msg.err
@@ -104,6 +118,9 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		case "enter":
 			name := s.textInput.Value()
 			return s, func() tea.Msg { return searchAnime(name) }
+
+		case " ":
+			return s, handleAnimeSelection(s.list)
 
 		case "esc":
 			s.textInput.Blur()
@@ -174,4 +191,31 @@ func (s searchModel) View() string {
 		return docStyle.Render(s.textInput.View() + "\n" + s.list.View())
 	}
 	return docStyle.Render(s.textInput.View())
+}
+
+// info page
+type infoModel struct {
+	name   string
+	body   string
+	genres []string
+	err    error
+	loaded bool
+	width  int
+	height int
+}
+
+func initInfoModel(anime anime) infoModel {
+	return infoModel{
+		name:   anime.Name,
+		body:   anime.Body,
+		genres: anime.Genres,
+	}
+}
+
+func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
+	return i, nil
+}
+
+func (i infoModel) View() string {
+	return docStyle.Render(i.name)
 }
