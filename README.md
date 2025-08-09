@@ -5,7 +5,7 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 ## todos
 
 - [x] home view
-- [ ] search view
+- [x] search view
 - [ ] anime view
 - [ ] watch anime
 
