@@ -10,42 +10,26 @@ import (
 
 // api returns a desc in the home route but doesn't return
 // a desc in the search route
-type animeWithDesc struct {
-	Name string `json:"name"`
-	Body string `json:"description"`
-}
-
 type anime struct {
 	Name string `json:"name"`
+	Body string `json:"description"`
 }
 
 // lol "animes"
 // searchResultsMsg contains anime without a desc
 type (
 	errMsg           struct{ err error }
-	animesMsg        struct{ animes []animeWithDesc }
+	animesMsg        struct{ animes []anime }
 	searchResultsMsg struct{ animes []anime }
 )
 
 // list.item implementation
-func (a animeWithDesc) Title() string {
-	return a.Name
-}
-
-func (a animeWithDesc) Description() string {
-	return a.Body
-}
-
-func (a animeWithDesc) FilterValue() string {
-	return a.Name
-}
-
 func (a anime) Title() string {
 	return a.Name
 }
 
 func (a anime) Description() string {
-	return ""
+	return a.Body
 }
 
 func (a anime) FilterValue() string {
@@ -69,7 +53,7 @@ func fetchHome() tea.Msg {
 
 	var response struct {
 		Data struct {
-			SpotlightAnimes []animeWithDesc `json:"spotlightAnimes"`
+			SpotlightAnimes []anime `json:"spotlightAnimes"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
