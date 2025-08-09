@@ -15,12 +15,22 @@ const (
 	infoPage
 )
 
+// helper functions
 // function to get selected anime and shove it into fetchAnimeInfo
 func handleAnimeSelection(l list.Model) tea.Cmd {
 	if selected, ok := l.SelectedItem().(anime); ok {
 		return func() tea.Msg { return fetchAnimeInfo(selected.ID) }
 	}
 	return nil
+}
+
+func setCustomHelp(l *list.Model) {
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Home, keys.Search, keys.Info}
+	}
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Home, keys.Search, keys.Focus, keys.Info}
+	}
 }
 
 // home page
@@ -54,13 +64,7 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(h.width-w, h.height-v)
 
-		// add custom keybindings to help menu
-		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search}
-		}
-		l.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Focus}
-		}
+		setCustomHelp(&l)
 
 		h.list = l
 		h.loaded = true
@@ -147,13 +151,7 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		l := list.New(items, list.NewDefaultDelegate(), 10, 10)
 		l.Title = "Results"
 
-		// add custom keybindings to help menu
-		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search}
-		}
-		l.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Focus}
-		}
+		setCustomHelp(&l)
 
 		// Get doc padding
 		w, v := docStyle.GetFrameSize()
