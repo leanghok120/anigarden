@@ -44,6 +44,15 @@ func setCustomHelp(l *list.Model) {
 	}
 }
 
+func addWatchToHelp(l *list.Model) {
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Home, keys.Search, keys.Watch}
+	}
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{keys.Home, keys.Search, keys.Focus, keys.Watch}
+	}
+}
+
 // home page
 type homeModel struct {
 	list   list.Model
@@ -247,7 +256,7 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
-		i.leftWidth = int(float64(msg.Width) * 0.4)
+		i.leftWidth = int(float64(msg.Width) * 0.3)
 		i.rightWidth = msg.Width - i.leftWidth
 
 	case episodesMsg:
@@ -262,7 +271,7 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(i.rightWidth-w, i.height-v)
 
-		// setCustomHelp(&l)
+		addWatchToHelp(&l)
 
 		i.list = l
 		i.loaded = true

@@ -7,16 +7,18 @@ type keyMap struct {
 	Search key.Binding
 	Focus  key.Binding
 	Info   key.Binding
+	Watch  key.Binding
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Home, k.Search, k.Info}
+	return []key.Binding{k.Home, k.Search, k.Info, k.Watch}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Home, k.Search},
 		{k.Focus, k.Info},
+		{k.Watch},
 	}
 }
 
@@ -36,5 +38,9 @@ var keys = keyMap{
 	Info: key.NewBinding(
 		key.WithKeys("space", "enter"),
 		key.WithHelp("space/enter", "get anime info"),
+	),
+	Watch: key.NewBinding(
+		key.WithKeys("space", "enter"),
+		key.WithHelp("space/enter", "watch"),
 	),
 }
