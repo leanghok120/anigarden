@@ -34,7 +34,7 @@ var keys = keyMap{
 		key.WithHelp("t", "focus search bar"),
 	),
 	Info: key.NewBinding(
-		key.WithKeys("space"),
-		key.WithHelp("space", "get anime info"),
+		key.WithKeys("space", "enter"),
+		key.WithHelp("space/enter", "get anime info"),
 	),
 }

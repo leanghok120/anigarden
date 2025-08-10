@@ -77,7 +77,7 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		if h.list.FilterState() == list.Filtering {
 			break
 		}
-		if msg.String() == " " {
+		if msg.String() == " " || msg.String() == "enter" {
 			return h, handleAnimeSelection(h.list)
 		}
 
@@ -141,7 +141,7 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 				s.textInput.Focus()
 				return s, nil
 			}
-			if msg.String() == " " {
+			if msg.String() == " " || msg.String() == "enter" {
 				return s, handleAnimeSelection(s.list)
 			}
 		}
