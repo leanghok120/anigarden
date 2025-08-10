@@ -233,20 +233,35 @@ func (i infoModel) View() string {
 		return docStyle.Render(i.err.Error())
 	}
 
+	i.name = lipgloss.NewStyle().
+		Background(lipgloss.Color("62")).
+		Foreground(lipgloss.Color("230")).
+		Padding(0, 1).
+		Render(i.name)
+
+	genres := lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#909090", Dark: "#626262"}).
+		Render("Genres: " + strings.Join(i.genres, ","))
+
 	left := lipgloss.NewStyle().
 		Width(i.leftWidth).
 		MaxWidth(i.leftWidth).
 		Render(fmt.Sprintf(
-			"%s\n\n%s\n\nGenres: %s\n",
+			"%s\n\n%s\n\n%s\n",
 			i.name,
+			genres,
 			i.body,
-			strings.Join(i.genres, ","),
 		))
 
+	gap := lipgloss.NewStyle().Width(4).Render()
+
 	right := lipgloss.NewStyle().
+		Background(lipgloss.Color("62")).
+		Foreground(lipgloss.Color("230")).
+		Padding(0, 1).
 		Width(i.rightWidth).
 		MaxWidth(i.rightWidth).
 		Render("Episodes")
 
-	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, right))
+	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, gap, right))
 }
