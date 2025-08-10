@@ -5,7 +5,7 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 ## installation
 
 ```sh
-go install github.com/leanghok120/anigarden
+go install github.com/leanghok120/anigarden@latest
 ```
 
 ## todos
