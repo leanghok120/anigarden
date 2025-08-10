@@ -9,7 +9,7 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 - [x] style the info page
 - [x] anime view
 - [x] fix kyebinding issues
-- [ ] watch anime
+- [x] watch anime
 - [ ] add the anime poster image to info page (maybe)
 
 ## dev notes
