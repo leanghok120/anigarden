@@ -74,6 +74,9 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		h.loaded = true
 
 	case tea.KeyMsg:
+		if h.list.FilterState() == list.Filtering {
+			break
+		}
 		if msg.String() == " " {
 			return h, handleAnimeSelection(h.list)
 		}
@@ -122,21 +125,25 @@ func initSearchModel() searchModel {
 func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			name := s.textInput.Value()
-			return s, func() tea.Msg { return searchAnime(name) }
-
-		case " ":
-			return s, handleAnimeSelection(s.list)
-
-		case "esc":
-			s.textInput.Blur()
-			return s, nil
-
-		case "t":
-			s.textInput.Focus()
-			return s, nil
+		if s.textInput.Focused() {
+			switch msg.String() {
+			case "enter":
+				name := s.textInput.Value()
+				return s, func() tea.Msg { return searchAnime(name) }
+			case "esc":
+				s.textInput.Blur()
+				return s, nil
+			}
+		}
+		if !s.textInput.Focused() && s.list.FilterState() != list.Filtering {
+			// when neither input nor filter is focused, allow `t` to focus textInput
+			if msg.String() == "t" {
+				s.textInput.Focus()
+				return s, nil
+			}
+			if msg.String() == " " {
+				return s, handleAnimeSelection(s.list)
+			}
 		}
 
 	case tea.WindowSizeMsg:
