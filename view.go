@@ -197,24 +197,31 @@ func (s searchModel) View() string {
 
 // info page
 type infoModel struct {
+	id         string
 	name       string
 	body       string
 	genres     []string
 	err        error
 	leftWidth  int
 	rightWidth int
+	height     int
+	list       list.Model
+	loaded     bool
 }
 
-func initInfoModel(anime anime, width int) infoModel {
+func initInfoModel(anime anime, width int, height int) infoModel {
 	leftWidth := int(float64(width) * 0.4)
 	rightWidth := width - leftWidth
 
 	return infoModel{
+		id:         anime.ID,
 		name:       anime.Name,
 		body:       anime.Body,
 		genres:     anime.Genres,
 		leftWidth:  leftWidth,
 		rightWidth: rightWidth,
+		height:     height,
+		loaded:     false,
 	}
 }
 
@@ -223,9 +230,28 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		i.leftWidth = int(float64(msg.Width) * 0.4)
 		i.rightWidth = msg.Width - i.leftWidth
+
+	case episodesMsg:
+		items := make([]list.Item, len(msg.episodes))
+		for i, a := range msg.episodes {
+			items[i] = a
+		}
+		l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+		l.Title = "Episodes"
+
+		// update list size
+		w, v := docStyle.GetFrameSize()
+		l.SetSize(i.rightWidth-w, i.height-v)
+
+		// setCustomHelp(&l)
+
+		i.list = l
+		i.loaded = true
 	}
 
-	return i, nil
+	var cmd tea.Cmd
+	i.list, cmd = i.list.Update(msg)
+	return i, cmd
 }
 
 func (i infoModel) View() string {
@@ -255,13 +281,16 @@ func (i infoModel) View() string {
 
 	gap := lipgloss.NewStyle().Width(4).Render()
 
+	var rightStr string
 	right := lipgloss.NewStyle().
-		Background(lipgloss.Color("62")).
-		Foreground(lipgloss.Color("230")).
-		Padding(0, 1).
 		Width(i.rightWidth).
-		MaxWidth(i.rightWidth).
-		Render("Episodes")
+		MaxWidth(i.rightWidth)
 
-	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, gap, right))
+	if !i.loaded {
+		rightStr = right.Render("🌱 loading anime episodes...")
+	} else {
+		rightStr = right.Render(i.list.View())
+	}
+
+	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, gap, rightStr))
 }

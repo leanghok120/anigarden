@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -17,11 +18,19 @@ type anime struct {
 	Genres []string `json:"genres"`
 }
 
+type episode struct {
+	ID       string `json:"episodeId"`
+	Name     string `json:"title"`
+	Number   int    `json:"number"`
+	IsFiller bool   `json:"isFiller"`
+}
+
 // lol "animes"
 // searchResultsMsg contains anime without a desc
 type (
 	errMsg           struct{ err error }
 	animesMsg        struct{ animes []anime }
+	episodesMsg      struct{ episodes []episode }
 	searchResultsMsg struct{ animes []anime }
 	animeInfoMsg     struct{ anime anime }
 )
@@ -37,6 +46,21 @@ func (a anime) Description() string {
 
 func (a anime) FilterValue() string {
 	return a.Name
+}
+
+func (e episode) Title() string {
+	return fmt.Sprintf("%d. %s", e.Number, e.Name)
+}
+
+func (e episode) Description() string {
+	if e.IsFiller {
+		return "filler"
+	}
+	return ""
+}
+
+func (e episode) FilterValue() string {
+	return e.Name
 }
 
 // api calls
@@ -112,4 +136,28 @@ func fetchAnimeInfo(id string) tea.Msg {
 	}
 
 	return animeInfoMsg{response.Data.Anime}
+}
+
+func fetchEpisodes(id string) tea.Msg {
+	res, err := http.Get(url + "/anime/" + id + "/episodes")
+	if err != nil {
+		return errMsg{err}
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	var response struct {
+		Data struct {
+			Episodes []episode `json:"episodes"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return errMsg{err}
+	}
+
+	return episodesMsg{response.Data.Episodes}
 }
