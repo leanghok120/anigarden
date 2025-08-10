@@ -2,6 +2,12 @@
 
 a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmbracelet/bubbletea) and [hianime api](https://github.com/ghoshRitesh12/aniwatch-api)
 
+## installation
+
+```sh
+go install github.com/leanghok120/anigarden
+```
+
 ## todos
 
 - [x] home view
@@ -11,12 +17,5 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 - [x] fix kyebinding issues
 - [x] watch anime
 - [ ] add the anime poster image to info page (maybe)
+- [ ] use sakura instead of mpv
 
-## dev notes
-
-### watching
-
-- fetch streaming link from api
-- put the Referer header returned from the api in the mpv --http-header-fields (fix 403 error)
-- put the .vtt file into mpv --sub-file
-- paste the .m3u8 file in
