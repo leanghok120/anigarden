@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type page int
@@ -193,27 +197,56 @@ func (s searchModel) View() string {
 
 // info page
 type infoModel struct {
-	name   string
-	body   string
-	genres []string
-	err    error
-	loaded bool
-	width  int
-	height int
+	name       string
+	body       string
+	genres     []string
+	err        error
+	leftWidth  int
+	rightWidth int
 }
 
-func initInfoModel(anime anime) infoModel {
+func initInfoModel(anime anime, width int) infoModel {
+	leftWidth := int(float64(width) * 0.4)
+	rightWidth := width - leftWidth
+
 	return infoModel{
-		name:   anime.Name,
-		body:   anime.Body,
-		genres: anime.Genres,
+		name:       anime.Name,
+		body:       anime.Body,
+		genres:     anime.Genres,
+		leftWidth:  leftWidth,
+		rightWidth: rightWidth,
 	}
 }
 
 func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		i.leftWidth = int(float64(msg.Width) * 0.4)
+		i.rightWidth = msg.Width - i.leftWidth
+	}
+
 	return i, nil
 }
 
 func (i infoModel) View() string {
-	return docStyle.Render(i.name)
+	if i.err != nil {
+		return docStyle.Render(i.err.Error())
+	}
+
+	left := lipgloss.NewStyle().
+		Width(i.leftWidth).
+		MaxWidth(i.leftWidth).
+		Render(fmt.Sprintf(
+			"%s\n\n%s\n\nGenres: %s\n",
+			i.name,
+			i.body,
+			strings.Join(i.genres, ","),
+		))
+
+	right := lipgloss.NewStyle().
+		Width(i.rightWidth).
+		MaxWidth(i.rightWidth).
+		Render("Episodes")
+
+	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, right))
 }

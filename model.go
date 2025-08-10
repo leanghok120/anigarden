@@ -28,7 +28,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.win = msg
 
 	case animeInfoMsg:
-		m.info = initInfoModel(msg.anime)
+		m.info = initInfoModel(msg.anime, m.win.Width)
 		m.currPage = infoPage
 		return m, nil
 
