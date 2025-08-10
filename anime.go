@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -23,6 +24,20 @@ type episode struct {
 	Name     string `json:"title"`
 	Number   int    `json:"number"`
 	IsFiller bool   `json:"isFiller"`
+}
+
+type streamingData struct {
+	Data struct {
+		Headers struct {
+			Referer string `json:"Referer"`
+		} `json:"headers"`
+		Tracks []struct {
+			Url string `json:"url"`
+		} `json:"tracks"`
+		Sources []struct {
+			Url string `json:"url"`
+		} `json:"sources"`
+	} `json:"data"`
 }
 
 // lol "animes"
@@ -160,4 +175,35 @@ func fetchEpisodes(id string) tea.Msg {
 	}
 
 	return episodesMsg{response.Data.Episodes}
+}
+
+func watchAnime(id string) tea.Msg {
+	res, err := http.Get(url + "/episode/sources?animeEpisodeId=" + id + "&server=hd-2&category=sub")
+	if err != nil {
+		return errMsg{err}
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	var response streamingData
+	if err := json.Unmarshal(body, &response); err != nil {
+		return errMsg{err}
+	}
+
+	referer := fmt.Sprintf("Referer: %s", response.Data.Headers.Referer)
+	subFile := response.Data.Tracks[0].Url
+	sourceFile := response.Data.Sources[0].Url
+
+	args := []string{"--http-header-fields=" + referer, "--sub-file=" + subFile, sourceFile}
+	mpvCmd := exec.Command("mpv", args...)
+
+	if err := mpvCmd.Run(); err != nil {
+		return errMsg{err}
+	}
+
+	return "success"
 }

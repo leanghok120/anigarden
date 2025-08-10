@@ -20,10 +20,17 @@ const (
 )
 
 // helper functions
-// function to get selected anime and shove it into fetchAnimeInfo
-func handleAnimeSelection(l list.Model) tea.Cmd {
+// function to get selected anime and shove it into fetchAnimeInfo or watchAnime
+func handleGetAnimeInfo(l list.Model) tea.Cmd {
 	if selected, ok := l.SelectedItem().(anime); ok {
 		return func() tea.Msg { return fetchAnimeInfo(selected.ID) }
+	}
+	return nil
+}
+
+func handleWatchAnime(l list.Model) tea.Cmd {
+	if selected, ok := l.SelectedItem().(episode); ok {
+		return func() tea.Msg { return watchAnime(selected.ID) }
 	}
 	return nil
 }
@@ -78,7 +85,7 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 			break
 		}
 		if msg.String() == " " || msg.String() == "enter" {
-			return h, handleAnimeSelection(h.list)
+			return h, handleGetAnimeInfo(h.list)
 		}
 
 	case errMsg:
@@ -142,7 +149,7 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 				return s, nil
 			}
 			if msg.String() == " " || msg.String() == "enter" {
-				return s, handleAnimeSelection(s.list)
+				return s, handleGetAnimeInfo(s.list)
 			}
 		}
 
@@ -234,6 +241,11 @@ func initInfoModel(anime anime, width int, height int) infoModel {
 
 func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.String() == " " || msg.String() == "enter" {
+			return i, handleWatchAnime(i.list)
+		}
+
 	case tea.WindowSizeMsg:
 		i.leftWidth = int(float64(msg.Width) * 0.4)
 		i.rightWidth = msg.Width - i.leftWidth
@@ -254,6 +266,10 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 
 		i.list = l
 		i.loaded = true
+
+	case errMsg:
+		i.err = msg.err
+		return i, nil
 	}
 
 	var cmd tea.Cmd
