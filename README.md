@@ -7,11 +7,19 @@ a cozy tui anime viewer written in go with [bubbletea](https://github.com/charmb
 - [x] home view
 - [x] search view
 - [x] style the info page
-- [ ] add the anime poster image 
-- [ ] anime view
+- [x] anime view
+- [ ] fix kyebinding issues
 - [ ] watch anime
+- [ ] add the anime poster image to info page (maybe)
 
 ## dev notes
+
+### keybind issues
+
+- pressing t in search bar does not work
+- pressing space in search bar and filter does not work
+- pressing t while filtering focuses search bar
+- pressing esc or enter in filter in search page doesnt work
 
 ### watching
 
