@@ -1,6 +1,7 @@
 # 🌸 anigarden
 
 A cozy **TUI anime viewer** written in Go with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and the [HiAnime API](https://github.com/ghoshRitesh12/aniwatch-api).  
+
 Browse, search, and watch anime right in the comfort of your terminal.
 
 ## ✨ Features
@@ -12,11 +13,19 @@ Browse, search, and watch anime right in the comfort of your terminal.
 
 ## 📦 Installation
 
-Make sure you have [Go](https://go.dev/dl/) installed (version 1.21+ recommended).  
+Make sure you have [mpv](https://mpv.io) and [Go](https://go.dev/dl/) installed (version 1.21+ recommended).
 Then run:
 
 ```sh
 go install github.com/leanghok120/anigarden@latest
+```
+
+## 🚀 Usage
+
+After installing, simply run:
+
+```sh
+anigarden
 ```
 
 ## 🗒️ Todos
