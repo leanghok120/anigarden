@@ -177,8 +177,8 @@ func fetchEpisodes(id string) tea.Msg {
 	return episodesMsg{response.Data.Episodes}
 }
 
-func watchAnime(id string) tea.Msg {
-	res, err := http.Get(url + "/episode/sources?animeEpisodeId=" + id + "&server=hd-2&category=sub")
+func watchAnime(epId, animeId string) tea.Msg {
+	res, err := http.Get(url + "/episode/sources?animeEpisodeId=" + epId + "&server=hd-2&category=sub")
 	if err != nil {
 		return errMsg{err}
 	}
@@ -205,5 +205,5 @@ func watchAnime(id string) tea.Msg {
 		return errMsg{err}
 	}
 
-	return "success"
+	return fetchEpisodes(animeId) // refetch epiodes after finish watching/quiting mpv
 }

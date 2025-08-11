@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -28,9 +29,9 @@ func handleGetAnimeInfo(l list.Model) tea.Cmd {
 	return nil
 }
 
-func handleWatchAnime(l list.Model) tea.Cmd {
+func handleWatchAnime(l list.Model, animeId string) tea.Cmd {
 	if selected, ok := l.SelectedItem().(episode); ok {
-		return func() tea.Msg { return watchAnime(selected.ID) }
+		return func() tea.Msg { return watchAnime(selected.ID, animeId) }
 	}
 	return nil
 }
@@ -55,11 +56,19 @@ func addWatchToHelp(l *list.Model) {
 
 // home page
 type homeModel struct {
-	list   list.Model
-	err    error
-	loaded bool
-	width  int
-	height int
+	list    list.Model
+	spinner spinner.Model
+	err     error
+	loaded  bool
+	width   int
+	height  int
+}
+
+func initHomeModel() homeModel {
+	s := spinner.New()
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	return homeModel{spinner: s}
 }
 
 func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
@@ -101,18 +110,20 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		h.err = msg.err
 	}
 
-	if h.loaded {
+	if !h.loaded {
 		var cmd tea.Cmd
-		h.list, cmd = h.list.Update(msg)
+		h.spinner, cmd = h.spinner.Update(msg)
 		return h, cmd
 	}
 
-	return h, nil
+	var cmd tea.Cmd
+	h.list, cmd = h.list.Update(msg)
+	return h, cmd
 }
 
 func (h homeModel) View() string {
 	if !h.loaded {
-		return docStyle.Render("🌱 loading anime list...")
+		return docStyle.Render(fmt.Sprintf("%s loading anime list...", h.spinner.View()))
 	}
 	if h.err != nil {
 		return docStyle.Render(h.err.Error())
@@ -124,6 +135,8 @@ func (h homeModel) View() string {
 type searchModel struct {
 	textInput textinput.Model
 	list      list.Model
+	spinner   spinner.Model
+	spinning  bool
 	err       error
 	loaded    bool
 	width     int
@@ -135,7 +148,11 @@ func initSearchModel() searchModel {
 	ti.Placeholder = "search anime"
 	ti.Width = 20
 	ti.Cursor.Blink = true
-	return searchModel{textInput: ti}
+
+	s := spinner.New()
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	return searchModel{textInput: ti, spinner: s}
 }
 
 func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
@@ -145,7 +162,9 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 			switch msg.String() {
 			case "enter":
 				name := s.textInput.Value()
-				return s, func() tea.Msg { return searchAnime(name) }
+				s.spinner.Tick()
+				s.spinning = true
+				return s, tea.Batch(s.spinner.Tick, func() tea.Msg { return searchAnime(name) })
 			case "esc":
 				s.textInput.Blur()
 				return s, nil
@@ -187,6 +206,7 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		s.list = l
 		s.textInput.Blur()
 		s.loaded = true
+		s.spinning = false
 
 	case errMsg:
 		s.err = msg.err
@@ -196,8 +216,12 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	var inputCmd tea.Cmd
+	var spinnerCmd tea.Cmd
 	s.textInput, inputCmd = s.textInput.Update(msg)
+	s.spinner, spinnerCmd = s.spinner.Update(msg)
+
 	cmds = append(cmds, inputCmd)
+	cmds = append(cmds, spinnerCmd)
 
 	if s.loaded {
 		var listCmd tea.Cmd
@@ -212,8 +236,11 @@ func (s searchModel) View() string {
 	if s.err != nil {
 		return docStyle.Render(s.err.Error())
 	}
+	if s.spinning {
+		return docStyle.Render(fmt.Sprintf("%s\n%s searching...", s.textInput.View(), s.spinner.View()))
+	}
 	if s.loaded {
-		return docStyle.Render(s.textInput.View() + "\n" + s.list.View())
+		return docStyle.Render(fmt.Sprintf("%s\n%s", s.textInput.View(), s.list.View()))
 	}
 	return docStyle.Render(s.textInput.View())
 }
@@ -229,12 +256,17 @@ type infoModel struct {
 	rightWidth int
 	height     int
 	list       list.Model
+	spinner    spinner.Model
+	spinning   bool
 	loaded     bool
 }
 
 func initInfoModel(anime anime, width int, height int) infoModel {
 	leftWidth := int(float64(width) * 0.4)
 	rightWidth := width - leftWidth
+	s := spinner.New()
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	return infoModel{
 		id:         anime.ID,
@@ -244,6 +276,7 @@ func initInfoModel(anime anime, width int, height int) infoModel {
 		leftWidth:  leftWidth,
 		rightWidth: rightWidth,
 		height:     height,
+		spinner:    s,
 		loaded:     false,
 	}
 }
@@ -252,7 +285,9 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.String() == " " || msg.String() == "enter" {
-			return i, handleWatchAnime(i.list)
+			// Start spinner for launching mpv
+			i.spinning = true
+			return i, tea.Batch(i.spinner.Tick, handleWatchAnime(i.list, i.id))
 		}
 
 	case tea.WindowSizeMsg:
@@ -260,30 +295,42 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		i.rightWidth = msg.Width - i.leftWidth
 
 	case episodesMsg:
+		i.spinning = false
+		i.loaded = true
+
 		items := make([]list.Item, len(msg.episodes))
-		for i, a := range msg.episodes {
-			items[i] = a
+		for i, ep := range msg.episodes {
+			items[i] = ep
 		}
 		l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 		l.Title = "Episodes"
 
-		// update list size
+		// Update list size
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(i.rightWidth-w, i.height-v)
 
 		addWatchToHelp(&l)
-
 		i.list = l
-		i.loaded = true
 
 	case errMsg:
 		i.err = msg.err
+		i.spinning = false
 		return i, nil
 	}
 
-	var cmd tea.Cmd
-	i.list, cmd = i.list.Update(msg)
-	return i, cmd
+	var cmds []tea.Cmd
+
+	var spinnerCmd tea.Cmd
+	i.spinner, spinnerCmd = i.spinner.Update(msg)
+	cmds = append(cmds, spinnerCmd)
+
+	if i.loaded {
+		var listCmd tea.Cmd
+		i.list, listCmd = i.list.Update(msg)
+		cmds = append(cmds, listCmd)
+	}
+
+	return i, tea.Batch(cmds...)
 }
 
 func (i infoModel) View() string {
@@ -304,12 +351,7 @@ func (i infoModel) View() string {
 	left := lipgloss.NewStyle().
 		Width(i.leftWidth).
 		MaxWidth(i.leftWidth).
-		Render(fmt.Sprintf(
-			"%s\n\n%s\n\n%s\n",
-			i.name,
-			genres,
-			i.body,
-		))
+		Render(fmt.Sprintf("%s\n\n%s\n\n%s\n", i.name, genres, i.body))
 
 	gap := lipgloss.NewStyle().Width(4).Render()
 
@@ -318,9 +360,12 @@ func (i infoModel) View() string {
 		Width(i.rightWidth).
 		MaxWidth(i.rightWidth)
 
-	if !i.loaded {
-		rightStr = right.Render("🌱 loading anime episodes...")
-	} else {
+	switch {
+	case !i.loaded:
+		rightStr = right.Render(fmt.Sprintf("%s loading anime episodes...", i.spinner.View()))
+	case i.spinning:
+		rightStr = right.Render(fmt.Sprintf("%s launching mpv...", i.spinner.View()))
+	default:
 		rightStr = right.Render(i.list.View())
 	}
 

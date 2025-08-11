@@ -15,11 +15,11 @@ type model struct {
 }
 
 func initialModel() model {
-	return model{currPage: homePage, home: homeModel{}, search: initSearchModel()}
+	return model{currPage: homePage, home: initHomeModel(), search: initSearchModel()}
 }
 
 func (m model) Init() tea.Cmd {
-	return fetchHome
+	return tea.Batch(fetchHome, m.home.spinner.Tick)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -30,7 +30,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case animeInfoMsg:
 		m.info = initInfoModel(msg.anime, m.win.Width, m.win.Height)
 		m.currPage = infoPage
-		return m, func() tea.Msg { return fetchEpisodes(msg.anime.ID) }
+		return m, tea.Batch(m.info.spinner.Tick, func() tea.Msg { return fetchEpisodes(msg.anime.ID) })
 
 	case tea.KeyMsg:
 		// if in filtering or textinput focus state, avoid quiting, switch pages...

@@ -36,7 +36,7 @@ anigarden
 - [x] anime view
 - [x] fix kyebinding issues
 - [x] watch anime
-- [ ] add loading spinners
+- [x] add loading spinners
 - [ ] add favorites/watch list
 - [ ] use sakura instead of mpv
 - [ ] add the anime poster image to info page (maybe)
