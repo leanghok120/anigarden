@@ -1,22 +1,23 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -29,62 +30,17 @@ jobs:
       - name: Build linux arm64
         run: GOOS=linux GOARCH=arm64 go build -o dist/anigarden-linux-arm .
 
-      - name: Build macos arm64
+      - name: Build macOS arm64
         run: GOOS=darwin GOARCH=arm64 go build -o dist/anigarden-macos-arm .
 
-      - name: Upload Linux amd64 artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: anigarden-linux-amd
-          path: dist/anigarden-linux-amd
-
-      - name: Upload Linux arm64 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: anigarden-linux-arm
-          path: dist/anigarden-linux-arm
-
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: anigarden-macos-arm
-          path: dist/anigarden-macos-arm
-
-  commit-dist:
-    needs: build 
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download Linux amd64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: anigarden-linux-amd
-          path: dist
-
-      - name: Download Linux arm64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: anigarden-linux-arm
-          path: dist
-
-      - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: anigarden-macos-arm
-          path: dist
-
-      - name: Set up Git user
-        run: |
-          git config --global user.email "fat-bot@fynjirby.dev"
-          git config --global user.name "FAT Bot"
-
-      - name: Commit and push dist binaries
-        run: |
-          git fetch origin master
-          git checkout master
-          git add -A dist/
-          git commit -m "FAT Bot: uploaded dist binaries [skip ci]" || echo "No changes to commit"
-          git push origin master
+          tag_name: ${{ github.event.inputs.version }}
+          name: "Release ${{ github.event.inputs.version }}"
+          files: |
+            dist/anigarden-linux-amd
+            dist/anigarden-linux-arm
+            dist/anigarden-macos-arm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
