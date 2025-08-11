@@ -13,12 +13,20 @@ Browse, search, and watch anime right in the comfort of your terminal.
 
 ## 📦 Installation
 
+There are 2 ways to install:
+
+### Go
+
 Make sure you have [mpv](https://mpv.io) and [Go](https://go.dev/dl/) installed (version 1.21+ recommended).
 Then run:
 
 ```sh
 go install github.com/leanghok120/anigarden@latest
 ```
+
+### Releases
+
+Go to the releases and download the binary that fits your machine
 
 ## 🚀 Usage
 
