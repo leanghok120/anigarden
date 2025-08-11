@@ -32,7 +32,8 @@ type streamingData struct {
 			Referer string `json:"Referer"`
 		} `json:"headers"`
 		Tracks []struct {
-			Url string `json:"url"`
+			Url  string `json:"url"`
+			Lang string `json:"lang"`
 		} `json:"tracks"`
 		Sources []struct {
 			Url string `json:"url"`
@@ -194,9 +195,16 @@ func watchAnime(epId, animeId string) tea.Msg {
 		return errMsg{err}
 	}
 
+	var subFile string
 	referer := fmt.Sprintf("Referer: %s", response.Data.Headers.Referer)
-	subFile := response.Data.Tracks[0].Url
 	sourceFile := response.Data.Sources[0].Url
+
+	// get english subtitles
+	for _, track := range response.Data.Tracks {
+		if track.Lang == "English" {
+			subFile = track.Url
+		}
+	}
 
 	args := []string{"--http-header-fields=" + referer, "--sub-file=" + subFile, sourceFile}
 	mpvCmd := exec.Command("mpv", args...)
