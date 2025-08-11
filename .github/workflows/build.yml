@@ -24,27 +24,39 @@ jobs:
         with:
           go-version: '1.24.3'
 
+      # Linux builds
       - name: Build linux amd64
-        run: GOOS=linux GOARCH=amd64 go build -o dist/anigarden-linux-amd .
+        run: GOOS=linux GOARCH=amd64 go build -o dist/anigarden-linux-amd64 .
 
       - name: Build linux arm64
-        run: GOOS=linux GOARCH=arm64 go build -o dist/anigarden-linux-arm .
+        run: GOOS=linux GOARCH=arm64 go build -o dist/anigarden-linux-arm64 .
 
+      # macOS builds
       - name: Build macOS amd64
-        run: GOOS=darwin GOARCH=amd64 go build -o dist/anigarden-macos-amd .
+        run: GOOS=darwin GOARCH=amd64 go build -o dist/anigarden-macos-amd64 .
 
       - name: Build macOS arm64
-        run: GOOS=darwin GOARCH=arm64 go build -o dist/anigarden-macos-arm .
+        run: GOOS=darwin GOARCH=arm64 go build -o dist/anigarden-macos-arm64 .
 
+      # Windows builds
+      - name: Build windows amd64
+        run: GOOS=windows GOARCH=amd64 go build -o dist/anigarden-windows-amd64.exe .
+
+      - name: Build windows arm64
+        run: GOOS=windows GOARCH=arm64 go build -o dist/anigarden-windows-arm64.exe .
+
+      # Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: "Release ${{ github.event.inputs.version }}"
           files: |
-            dist/anigarden-linux-amd
-            dist/anigarden-linux-arm
-            dist/anigarden-macos-amd
-            dist/anigarden-macos-arm
+            dist/anigarden-linux-amd64
+            dist/anigarden-linux-arm64
+            dist/anigarden-macos-amd64
+            dist/anigarden-macos-arm64
+            dist/anigarden-windows-amd64.exe
+            dist/anigarden-windows-arm64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
