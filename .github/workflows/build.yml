@@ -30,6 +30,9 @@ jobs:
       - name: Build linux arm64
         run: GOOS=linux GOARCH=arm64 go build -o dist/anigarden-linux-arm .
 
+      - name: Build macOS amd64
+        run: GOOS=darwin GOARCH=amd64 go build -o dist/anigarden-macos-amd .
+
       - name: Build macOS arm64
         run: GOOS=darwin GOARCH=arm64 go build -o dist/anigarden-macos-arm .
 
@@ -41,6 +44,7 @@ jobs:
           files: |
             dist/anigarden-linux-amd
             dist/anigarden-linux-arm
+            dist/anigarden-macos-amd
             dist/anigarden-macos-arm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
