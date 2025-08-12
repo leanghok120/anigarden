@@ -18,10 +18,11 @@ const (
 	homePage page = iota
 	searchPage
 	infoPage
+	watchlistPage
 )
 
 // helper functions
-// function to get selected anime and shove it into fetchAnimeInfo or watchAnime
+// function to get selected anime and shove it into fetchAnimeInfo or watchAnime or addAnimeToWatchlist
 func handleGetAnimeInfo(l list.Model) tea.Cmd {
 	if selected, ok := l.SelectedItem().(anime); ok {
 		return func() tea.Msg { return fetchAnimeInfo(selected.ID) }
@@ -34,6 +35,12 @@ func handleWatchAnime(l list.Model, animeId string) tea.Cmd {
 		return func() tea.Msg { return watchAnime(selected.ID, animeId) }
 	}
 	return nil
+}
+
+func handleAddToWatchlist(l list.Model) {
+	if selected, ok := l.SelectedItem().(anime); ok {
+		addAnimeToWatchlist(selected.ID)
+	}
 }
 
 func setCustomHelp(l *list.Model) {
@@ -102,8 +109,12 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		if h.list.FilterState() == list.Filtering {
 			break
 		}
-		if msg.String() == " " || msg.String() == "enter" {
+		switch msg.String() {
+		case " ", "enter":
 			return h, handleGetAnimeInfo(h.list)
+
+		case "a":
+			handleAddToWatchlist(h.list)
 		}
 
 	case errMsg:
@@ -172,12 +183,16 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		}
 		if !s.textInput.Focused() && s.list.FilterState() != list.Filtering {
 			// when neither input nor filter is focused, allow `t` to focus textInput
-			if msg.String() == "t" {
+			switch msg.String() {
+			case "t":
 				s.textInput.Focus()
 				return s, nil
-			}
-			if msg.String() == " " || msg.String() == "enter" {
+
+			case " ", "enter":
 				return s, handleGetAnimeInfo(s.list)
+
+			case "a":
+				handleAddToWatchlist(s.list)
 			}
 		}
 
@@ -370,4 +385,81 @@ func (i infoModel) View() string {
 	}
 
 	return docStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, left, gap, rightStr))
+}
+
+// watchlist page
+type watchlistModel struct {
+	list    list.Model
+	spinner spinner.Model
+	err     error
+	loaded  bool
+	width   int
+	height  int
+}
+
+func initWatchlistModel() watchlistModel {
+	s := spinner.New()
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	return watchlistModel{spinner: s}
+}
+
+func (w watchlistModel) Update(msg tea.Msg) (watchlistModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		w.width = msg.Width
+		w.height = msg.Height
+		if w.loaded {
+			width, height := docStyle.GetFrameSize()
+			w.list.SetSize(msg.Width-width, msg.Height-height)
+		}
+
+	case animesMsg:
+		items := make([]list.Item, len(msg.animes))
+		for i, a := range msg.animes {
+			items[i] = a
+		}
+		l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+		l.Title = "Watchlist"
+
+		// update list size
+		wi, vi := docStyle.GetFrameSize()
+		l.SetSize(w.width-wi, w.height-vi)
+
+		setCustomHelp(&l)
+
+		w.list = l
+		w.loaded = true
+
+	case tea.KeyMsg:
+		if w.list.FilterState() == list.Filtering {
+			break
+		}
+		if msg.String() == " " || msg.String() == "enter" {
+			return w, handleGetAnimeInfo(w.list)
+		}
+
+	case errMsg:
+		w.err = msg.err
+	}
+
+	if !w.loaded {
+		var cmd tea.Cmd
+		w.spinner, cmd = w.spinner.Update(msg)
+		return w, cmd
+	}
+
+	var cmd tea.Cmd
+	w.list, cmd = w.list.Update(msg)
+	return w, cmd
+}
+
+func (w watchlistModel) View() string {
+	if !w.loaded {
+		return docStyle.Render(fmt.Sprintf("%s loading watchlist...", w.spinner.View()))
+	}
+	if w.err != nil {
+		return docStyle.Render(w.err.Error())
+	}
+	return docStyle.Render(w.list.View())
 }

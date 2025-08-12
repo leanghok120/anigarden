@@ -178,6 +178,51 @@ func fetchEpisodes(id string) tea.Msg {
 	return episodesMsg{response.Data.Episodes}
 }
 
+// since the api doesn't provide an endpoint that allows
+// us to fetch an anime by its id we have to search for animes wih similar id
+// and filter the search result until we get the anime we want and repeat till
+// we have all the animes in the watchlist
+func fetchWatchlist() tea.Msg {
+	animeIds := getWatchlist()
+
+	var animesInWatchlist []anime
+
+	// iterate over each anime ID in the watchlist
+	for _, animeId := range animeIds {
+		res, err := http.Get(fmt.Sprintf("%s/search?q=%s", url, animeId))
+		if err != nil {
+			return errMsg{err}
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return errMsg{err}
+		}
+
+		var response struct {
+			Data struct {
+				Animes []anime `json:"animes"`
+			} `json:"data"`
+		}
+
+		if err := json.Unmarshal(body, &response); err != nil {
+			return errMsg{err}
+		}
+
+		// loop through the search results to find the exact match
+		for _, foundAnime := range response.Data.Animes {
+			if foundAnime.ID == animeId {
+				animesInWatchlist = append(animesInWatchlist, foundAnime)
+				break
+			}
+		}
+	}
+
+	// Return the final slice of animes wrapped in an animesMsg
+	return animesMsg{animesInWatchlist}
+}
+
 func watchAnime(epId, animeId string) tea.Msg {
 	res, err := http.Get(url + "/episode/sources?animeEpisodeId=" + epId + "&server=hd-2&category=sub")
 	if err != nil {

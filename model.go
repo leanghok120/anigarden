@@ -7,15 +7,16 @@ import (
 )
 
 type model struct {
-	currPage page
-	home     homeModel
-	search   searchModel
-	info     infoModel
-	win      tea.WindowSizeMsg
+	currPage  page
+	home      homeModel
+	search    searchModel
+	info      infoModel
+	watchlist watchlistModel
+	win       tea.WindowSizeMsg
 }
 
 func initialModel() model {
-	return model{currPage: homePage, home: initHomeModel(), search: initSearchModel()}
+	return model{currPage: homePage, home: initHomeModel(), search: initSearchModel(), watchlist: initWatchlistModel()}
 }
 
 func (m model) Init() tea.Cmd {
@@ -50,6 +51,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currPage = searchPage
 			m.search.textInput.Focus()
 			return m, func() tea.Msg { return m.win } // send tea.WindowSizeMsg to search model
+
+		case "w":
+			m.currPage = watchlistPage
+
+			// send tea.WindowSizeMsg to watchlist model
+			return m, tea.Batch(fetchWatchlist, func() tea.Msg { return m.win }, m.watchlist.spinner.Tick)
 		}
 	}
 
@@ -58,6 +65,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.home, cmd = m.home.Update(msg)
 		return m, cmd
+
 	case searchPage:
 		var cmd tea.Cmd
 		m.search, cmd = m.search.Update(msg)
@@ -66,6 +74,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case infoPage:
 		var cmd tea.Cmd
 		m.info, cmd = m.info.Update(msg)
+		return m, cmd
+
+	case watchlistPage:
+		var cmd tea.Cmd
+		m.watchlist, cmd = m.watchlist.Update(msg)
 		return m, cmd
 	}
 
@@ -82,6 +95,8 @@ func (m model) View() string {
 		return m.search.View()
 	case infoPage:
 		return m.info.View()
+	case watchlistPage:
+		return m.watchlist.View()
 	default:
 		return "404 not found"
 	}
