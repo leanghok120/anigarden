@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,7 +19,7 @@ func initDB() {
 
 	_, err = db.Exec(`
 	CREATE TABLE IF NOT EXISTS watchlist (
-		anime_id TEXT NOT NULL,
+		anime_id TEXT NOT NULL UNIQUE,
 		added_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)
 	`)
@@ -53,6 +54,9 @@ func getWatchlist() []string {
 func addAnimeToWatchlist(animeId string) {
 	_, err := db.Exec(`INSERT INTO watchlist (anime_id) VALUES (?)`, animeId)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			return
+		}
 		log.Fatalf("failed to add %s to watchlist: %v\n", animeId, err)
 	}
 }
