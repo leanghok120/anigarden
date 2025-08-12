@@ -438,7 +438,7 @@ func (w watchlistModel) Update(msg tea.Msg) (watchlistModel, tea.Cmd) {
 			w.list.SetSize(msg.Width-width, msg.Height-height)
 		}
 
-	case animesMsg:
+	case watchlistMsg:
 		items := make([]list.Item, len(msg.animes))
 		for i, a := range msg.animes {
 			items[i] = a

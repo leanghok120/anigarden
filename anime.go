@@ -49,6 +49,7 @@ type (
 	episodesMsg      struct{ episodes []episode }
 	searchResultsMsg struct{ animes []anime }
 	animeInfoMsg     struct{ anime anime }
+	watchlistMsg     struct{ animes []anime }
 )
 
 // list.item implementation
@@ -220,7 +221,7 @@ func fetchWatchlist() tea.Msg {
 	}
 
 	// Return the final slice of animes wrapped in an animesMsg
-	return animesMsg{animesInWatchlist}
+	return watchlistMsg{animesInWatchlist}
 }
 
 func watchAnime(epId, animeId string) tea.Msg {
