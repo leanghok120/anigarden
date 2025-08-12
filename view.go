@@ -43,21 +43,39 @@ func handleAddToWatchlist(l list.Model) {
 	}
 }
 
-func setCustomHelp(l *list.Model) {
-	l.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Home, keys.Search, keys.Info}
-	}
-	l.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Home, keys.Search, keys.Focus, keys.Info}
-	}
-}
+func setCustomHelp(l *list.Model, page page) {
+	switch page {
+	case homePage:
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Search, keys.Watchlist, keys.AddToWatchlist, keys.Info}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Search, keys.Watchlist, keys.AddToWatchlist, keys.Info}
+		}
 
-func addWatchToHelp(l *list.Model) {
-	l.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Home, keys.Search, keys.Watch}
-	}
-	l.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Home, keys.Search, keys.Focus, keys.Watch}
+	case searchPage:
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Watchlist, keys.AddToWatchlist, keys.Info}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Watchlist, keys.Focus, keys.Info}
+		}
+
+	case infoPage:
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.Watch}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.Watch}
+		}
+
+	case watchlistPage:
+		l.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Info}
+		}
+		l.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{keys.Home, keys.Search, keys.Info}
+		}
 	}
 }
 
@@ -100,7 +118,7 @@ func (h homeModel) Update(msg tea.Msg) (homeModel, tea.Cmd) {
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(h.width-w, h.height-v)
 
-		setCustomHelp(&l)
+		setCustomHelp(&l, homePage)
 
 		h.list = l
 		h.loaded = true
@@ -212,7 +230,7 @@ func (s searchModel) Update(msg tea.Msg) (searchModel, tea.Cmd) {
 		l := list.New(items, list.NewDefaultDelegate(), 10, 10)
 		l.Title = "Results"
 
-		setCustomHelp(&l)
+		setCustomHelp(&l, searchPage)
 
 		// Get doc padding
 		w, v := docStyle.GetFrameSize()
@@ -324,7 +342,7 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		w, v := docStyle.GetFrameSize()
 		l.SetSize(i.rightWidth-w, i.height-v)
 
-		addWatchToHelp(&l)
+		setCustomHelp(&l, infoPage)
 		i.list = l
 
 	case errMsg:
@@ -426,7 +444,7 @@ func (w watchlistModel) Update(msg tea.Msg) (watchlistModel, tea.Cmd) {
 		wi, vi := docStyle.GetFrameSize()
 		l.SetSize(w.width-wi, w.height-vi)
 
-		setCustomHelp(&l)
+		setCustomHelp(&l, watchlistPage)
 
 		w.list = l
 		w.loaded = true
