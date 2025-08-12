@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -10,9 +12,30 @@ import (
 
 var db *sql.DB
 
+func getDbPath() (string, error) {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	appDir := filepath.Join(dir, "anigarden")
+	if err := os.MkdirAll(appDir, 0775); err != nil {
+		return "", err
+	}
+
+	return filepath.Join(appDir, "watchlist.db"), nil
+}
+
 func initDB() {
 	var err error
-	db, err = sql.Open("sqlite3", "watchlist.db")
+	var dbPath string
+
+	dbPath, err = getDbPath()
+	if err != nil {
+		log.Fatalf("failed to get db path: %v\n", err)
+	}
+
+	db, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatalf("failed to init db: %v\n", err)
 	}
