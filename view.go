@@ -43,11 +43,17 @@ func handleAddToWatchlist(l list.Model) {
 	}
 }
 
+func handleRemoveFromWatchlist(l list.Model) {
+	if selected, ok := l.SelectedItem().(anime); ok {
+		removeAnimeFromWatchlist(selected.ID)
+	}
+}
+
 func setCustomHelp(l *list.Model, page page) {
 	switch page {
 	case homePage:
 		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Search, keys.Watchlist, keys.AddToWatchlist, keys.Info}
+			return []key.Binding{keys.Search, keys.Watchlist, keys.AddToWatchlist}
 		}
 		l.AdditionalFullHelpKeys = func() []key.Binding {
 			return []key.Binding{keys.Search, keys.Watchlist, keys.AddToWatchlist, keys.Info}
@@ -55,7 +61,7 @@ func setCustomHelp(l *list.Model, page page) {
 
 	case searchPage:
 		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Watchlist, keys.AddToWatchlist, keys.Info}
+			return []key.Binding{keys.Home, keys.Watchlist, keys.AddToWatchlist}
 		}
 		l.AdditionalFullHelpKeys = func() []key.Binding {
 			return []key.Binding{keys.Home, keys.Watchlist, keys.Focus, keys.Info}
@@ -71,10 +77,10 @@ func setCustomHelp(l *list.Model, page page) {
 
 	case watchlistPage:
 		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Info}
+			return []key.Binding{keys.Home, keys.Search, keys.RemoveFromWatchlist}
 		}
 		l.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Info}
+			return []key.Binding{keys.Home, keys.Search, keys.RemoveFromWatchlist, keys.Info}
 		}
 	}
 }
@@ -455,6 +461,10 @@ func (w watchlistModel) Update(msg tea.Msg) (watchlistModel, tea.Cmd) {
 		}
 		if msg.String() == " " || msg.String() == "enter" {
 			return w, handleGetAnimeInfo(w.list)
+		}
+		if msg.String() == "r" {
+			handleRemoveFromWatchlist(w.list)
+			return w, func() tea.Msg { return fetchWatchlist() }
 		}
 
 	case errMsg:

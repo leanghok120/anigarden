@@ -60,3 +60,10 @@ func addAnimeToWatchlist(animeId string) {
 		log.Fatalf("failed to add %s to watchlist: %v\n", animeId, err)
 	}
 }
+
+func removeAnimeFromWatchlist(animeId string) {
+	_, err := db.Exec(`DELETE FROM watchlist WHERE anime_id = (?)`, animeId)
+	if err != nil {
+		log.Fatalf("failed to remove %s from watchlist: %v\n", animeId, err)
+	}
+}

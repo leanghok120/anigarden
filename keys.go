@@ -3,13 +3,14 @@ package main
 import "github.com/charmbracelet/bubbles/key"
 
 type keyMap struct {
-	Home           key.Binding
-	Search         key.Binding
-	Focus          key.Binding
-	Info           key.Binding
-	Watchlist      key.Binding
-	AddToWatchlist key.Binding
-	Watch          key.Binding
+	Home                key.Binding
+	Search              key.Binding
+	Focus               key.Binding
+	Info                key.Binding
+	Watchlist           key.Binding
+	AddToWatchlist      key.Binding
+	RemoveFromWatchlist key.Binding
+	Watch               key.Binding
 }
 
 var keys = keyMap{
@@ -36,6 +37,10 @@ var keys = keyMap{
 	AddToWatchlist: key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "add to watchlist"),
+	),
+	RemoveFromWatchlist: key.NewBinding(
+		key.WithKeys("r"),
+		key.WithHelp("r", "remove from watchlist"),
 	),
 	Watch: key.NewBinding(
 		key.WithKeys("space", "enter"),
