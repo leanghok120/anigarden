@@ -4,10 +4,6 @@ A cozy **TUI anime viewer** written in Go with [Bubble Tea](https://github.com/c
 
 Browse, search, and watch anime right in the comfort of your terminal.
 
-## NOTE
-
-Currently, there's a bug with the watching part of anigarden and there's not much i can do about it since i have no control over it.
-
 ## ✨ Features
 
 - **Home View:** See trending or recommended anime right away.  
