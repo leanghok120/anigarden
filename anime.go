@@ -28,16 +28,13 @@ type episode struct {
 
 type streamingData struct {
 	Data struct {
-		Headers struct {
-			Referer string `json:"Referer"`
-		} `json:"headers"`
 		Tracks []struct {
-			Url  string `json:"url"`
-			Lang string `json:"lang"`
+			Url  string `json:"file"`
+			Lang string `json:"label"`
 		} `json:"tracks"`
-		Sources []struct {
-			Url string `json:"url"`
-		} `json:"sources"`
+		Sources struct {
+			Url string `json:"file"`
+		} `json:"link"`
 	} `json:"data"`
 }
 
@@ -81,7 +78,10 @@ func (e episode) FilterValue() string {
 }
 
 // api calls
-const url = "https://aniwatch-api-rosy-one.vercel.app/api/v2/hianime"
+const (
+	url         = "https://aniwatch-api-rosy-one.vercel.app/api/v2/hianime"
+	fallbackurl = "https://hianime-api-fallback.onrender.com/api/v1"
+)
 
 func fetchHome() tea.Msg {
 	res, err := http.Get(url + "/home")
@@ -225,7 +225,7 @@ func fetchWatchlist() tea.Msg {
 }
 
 func watchAnime(epId, animeId string) tea.Msg {
-	res, err := http.Get(url + "/episode/sources?animeEpisodeId=" + epId + "&server=hd-2&category=sub")
+	res, err := http.Get(fallbackurl + "/stream?id=" + epId + "&server=HD-2&type=sub")
 	if err != nil {
 		return errMsg{err}
 	}
@@ -242,8 +242,8 @@ func watchAnime(epId, animeId string) tea.Msg {
 	}
 
 	var subFile string
-	referer := fmt.Sprintf("Referer: %s", response.Data.Headers.Referer)
-	sourceFile := response.Data.Sources[0].Url
+	headers := "Referer: https://vidwish.live/"
+	sourceFile := response.Data.Sources.Url
 
 	// get english subtitles
 	for _, track := range response.Data.Tracks {
@@ -252,7 +252,7 @@ func watchAnime(epId, animeId string) tea.Msg {
 		}
 	}
 
-	args := []string{"--http-header-fields=" + referer, "--sub-file=" + subFile, sourceFile}
+	args := []string{"--http-header-fields=" + headers, "--sub-file=" + subFile, sourceFile}
 	mpvCmd := exec.Command("mpv", args...)
 
 	if err := mpvCmd.Run(); err != nil {
