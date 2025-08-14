@@ -62,4 +62,5 @@ If you’d like to help improve anigarden, you can:
 
 - [Charmbracelet](https://github.com/charmbracelet) for the incredible Bubble Tea TUI framework and other TUI libraries
 - [ghoshRitesh12](https://github.com/ghoshRitesh12/aniwatch-api) for the HiAnime API
+- [yahyaMomin](https://github.com/yahyaMomin)
 - [mpv](https://mpv.io) for the powerful media player
