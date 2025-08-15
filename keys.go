@@ -11,6 +11,7 @@ type keyMap struct {
 	AddToWatchlist      key.Binding
 	RemoveFromWatchlist key.Binding
 	Watch               key.Binding
+	ToggleDub           key.Binding
 }
 
 var keys = keyMap{
@@ -45,5 +46,9 @@ var keys = keyMap{
 	Watch: key.NewBinding(
 		key.WithKeys("space", "enter"),
 		key.WithHelp("space/enter", "watch"),
+	),
+	ToggleDub: key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "toggle dub/sub"),
 	),
 }

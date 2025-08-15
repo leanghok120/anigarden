@@ -224,8 +224,8 @@ func fetchWatchlist() tea.Msg {
 	return watchlistMsg{animesInWatchlist}
 }
 
-func watchAnime(epId, animeId string) tea.Msg {
-	res, err := http.Get(fallbackurl + "/stream?id=" + epId + "&server=HD-2&type=sub")
+func watchAnime(epId, animeId, lang string) tea.Msg {
+	res, err := http.Get(fallbackurl + "/stream?id=" + epId + "&server=HD-2&type=" + lang)
 	if err != nil {
 		return errMsg{err}
 	}
@@ -252,7 +252,14 @@ func watchAnime(epId, animeId string) tea.Msg {
 		}
 	}
 
-	args := []string{"--http-header-fields=" + headers, "--sub-file=" + subFile, sourceFile}
+	args := []string{"--http-header-fields=" + headers}
+
+	if subFile != "" {
+		args = append(args, "--sub-file="+subFile)
+	}
+
+	args = append(args, sourceFile)
+
 	mpvCmd := exec.Command("mpv", args...)
 
 	if err := mpvCmd.Run(); err != nil {

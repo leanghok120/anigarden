@@ -30,9 +30,9 @@ func handleGetAnimeInfo(l list.Model) tea.Cmd {
 	return nil
 }
 
-func handleWatchAnime(l list.Model, animeId string) tea.Cmd {
+func handleWatchAnime(l list.Model, animeId string, lang string) tea.Cmd {
 	if selected, ok := l.SelectedItem().(episode); ok {
-		return func() tea.Msg { return watchAnime(selected.ID, animeId) }
+		return func() tea.Msg { return watchAnime(selected.ID, animeId, lang) }
 	}
 	return nil
 }
@@ -69,10 +69,10 @@ func setCustomHelp(l *list.Model, page page) {
 
 	case infoPage:
 		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.Watch}
+			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.ToggleDub, keys.Watch}
 		}
 		l.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.Watch}
+			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.ToggleDub, keys.Watch}
 		}
 
 	case watchlistPage:
@@ -290,6 +290,7 @@ type infoModel struct {
 	name       string
 	body       string
 	genres     []string
+	lang       string
 	err        error
 	leftWidth  int
 	rightWidth int
@@ -312,6 +313,7 @@ func initInfoModel(anime anime, width int, height int) infoModel {
 		name:       anime.Name,
 		body:       anime.Body,
 		genres:     anime.Genres,
+		lang:       "sub",
 		leftWidth:  leftWidth,
 		rightWidth: rightWidth,
 		height:     height,
@@ -326,7 +328,17 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		if msg.String() == " " || msg.String() == "enter" {
 			// Start spinner for launching mpv
 			i.spinning = true
-			return i, tea.Batch(i.spinner.Tick, handleWatchAnime(i.list, i.id))
+			return i, tea.Batch(i.spinner.Tick, handleWatchAnime(i.list, i.id, i.lang))
+		}
+
+		// toggle between sub and dub
+		if msg.String() == "d" {
+			if i.lang == "sub" {
+				i.lang = "dub"
+				return i, nil
+			}
+			i.lang = "dub"
+			return i, nil
 		}
 
 	case tea.WindowSizeMsg:
