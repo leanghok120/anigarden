@@ -9,6 +9,8 @@ Browse, search, and watch anime right in the comfort of your terminal.
 - **Home View:** See trending or recommended anime right away.  
 - **Search View:** Search for your favorite anime.
 - **Anime View:** See details about an anime and its episodes.  
+- **Watchlist:** Add and remove anime to watchlist.
+- **Toggle sub/dub:** Change between sub and dub.
 - **MPV Integration:** Stream and watch an anime with mpv.
 
 ## 📦 Installation
