@@ -426,7 +426,7 @@ func (i infoModel) View() string {
 	case !i.loaded:
 		rightStr = right.Render(fmt.Sprintf("%s loading anime episodes...", i.spinner.View()))
 	case i.spinning:
-		rightStr = right.Render(fmt.Sprintf("%s launching mpv...", i.spinner.View()))
+		rightStr = right.Render(fmt.Sprintf("%s launching player...", i.spinner.View()))
 	default:
 		rightStr = right.Render(i.list.View())
 	}
