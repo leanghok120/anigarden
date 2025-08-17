@@ -12,6 +12,7 @@ type keyMap struct {
 	RemoveFromWatchlist key.Binding
 	Watch               key.Binding
 	ToggleDub           key.Binding
+	ToggleClient        key.Binding
 }
 
 var keys = keyMap{
@@ -50,5 +51,9 @@ var keys = keyMap{
 	ToggleDub: key.NewBinding(
 		key.WithKeys("d"),
 		key.WithHelp("d", "toggle dub/sub"),
+	),
+	ToggleClient: key.NewBinding(
+		key.WithKeys("c"),
+		key.WithHelp("c", "toggle client"),
 	),
 }

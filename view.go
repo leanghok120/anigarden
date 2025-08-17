@@ -69,10 +69,10 @@ func setCustomHelp(l *list.Model, page page) {
 
 	case infoPage:
 		l.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.ToggleDub, keys.Watch}
+			return []key.Binding{keys.ToggleDub, keys.ToggleClient, keys.Watch, keys.Home, keys.Search, keys.Watchlist}
 		}
 		l.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.ToggleDub, keys.Watch}
+			return []key.Binding{keys.Home, keys.Search, keys.Watchlist, keys.ToggleDub, keys.Watch, keys.ToggleClient}
 		}
 
 	case watchlistPage:
