@@ -30,9 +30,9 @@ func handleGetAnimeInfo(l list.Model) tea.Cmd {
 	return nil
 }
 
-func handleWatchAnime(l list.Model, animeId string, lang string) tea.Cmd {
+func handleWatchAnime(l list.Model, animeId, lang, client string) tea.Cmd {
 	if selected, ok := l.SelectedItem().(episode); ok {
-		return func() tea.Msg { return watchAnime(selected.ID, animeId, lang) }
+		return func() tea.Msg { return watchAnime(selected.ID, animeId, lang, client) }
 	}
 	return nil
 }
@@ -291,6 +291,7 @@ type infoModel struct {
 	body       string
 	genres     []string
 	lang       string
+	client     string
 	err        error
 	leftWidth  int
 	rightWidth int
@@ -314,6 +315,7 @@ func initInfoModel(anime anime, width int, height int) infoModel {
 		body:       anime.Body,
 		genres:     anime.Genres,
 		lang:       "sub",
+		client:     "browser",
 		leftWidth:  leftWidth,
 		rightWidth: rightWidth,
 		height:     height,
@@ -328,7 +330,7 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 		if msg.String() == " " || msg.String() == "enter" {
 			// Start spinner for launching mpv
 			i.spinning = true
-			return i, tea.Batch(i.spinner.Tick, handleWatchAnime(i.list, i.id, i.lang))
+			return i, tea.Batch(i.spinner.Tick, handleWatchAnime(i.list, i.id, i.lang, i.client))
 		}
 
 		// toggle between sub and dub
@@ -337,7 +339,16 @@ func (i infoModel) Update(msg tea.Msg) (infoModel, tea.Cmd) {
 				i.lang = "dub"
 				return i, nil
 			}
-			i.lang = "dub"
+			i.lang = "sub"
+			return i, nil
+		}
+
+		if msg.String() == "c" {
+			if i.client == "mpv" {
+				i.client = "browser"
+				return i, nil
+			}
+			i.client = "mpv"
 			return i, nil
 		}
 

@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"runtime"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -224,7 +226,7 @@ func fetchWatchlist() tea.Msg {
 	return watchlistMsg{animesInWatchlist}
 }
 
-func watchAnime(epId, animeId, lang string) tea.Msg {
+func watchAnime(epId, animeId, lang, client string) tea.Msg {
 	res, err := http.Get(fallbackurl + "/stream?id=" + epId + "&server=HD-2&type=" + lang)
 	if err != nil {
 		return errMsg{err}
@@ -241,30 +243,61 @@ func watchAnime(epId, animeId, lang string) tea.Msg {
 		return errMsg{err}
 	}
 
-	var subFile string
-	headers := "Referer: https://vidwish.live/"
-	sourceFile := response.Data.Sources.Url
+	if client == "mpv" {
+		var subFile string
+		headers := "Referer: https://vidwish.live/"
+		sourceFile := response.Data.Sources.Url
 
-	// get english subtitles
-	for _, track := range response.Data.Tracks {
-		if track.Lang == "English" {
-			subFile = track.Url
+		// get english subtitles
+		for _, track := range response.Data.Tracks {
+			if track.Lang == "English" {
+				subFile = track.Url
+			}
 		}
+
+		args := []string{"--http-header-fields=" + headers}
+
+		if subFile != "" {
+			args = append(args, "--sub-file="+subFile)
+		}
+
+		args = append(args, sourceFile)
+
+		mpvCmd := exec.Command("mpv", args...)
+
+		if err := mpvCmd.Run(); err != nil {
+			return errMsg{err}
+		}
+	} else {
+		// get episode ID
+		parts := strings.Split(epId, "ep=")
+		if len(parts) < 2 {
+			return errMsg{err}
+		}
+		epIdNum := parts[1]
+
+		animeUrl := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", epIdNum, lang)
+		fullUrl := fmt.Sprintf("https://anigarden-player.netlify.app/?iframeLink=%s", animeUrl)
+
+		// Open the browser
+		var cmd string
+		var args []string
+		switch runtime.GOOS {
+		case "linux":
+			cmd = "xdg-open"
+			args = []string{fullUrl}
+		case "windows":
+			cmd = "rundll32"
+			args = []string{"url.dll,FileProtocolHandler", fullUrl}
+		case "darwin":
+			cmd = "open"
+			args = []string{fullUrl}
+		default:
+			return fmt.Errorf("unsupported platform")
+		}
+
+		exec.Command(cmd, args...).Start()
 	}
 
-	args := []string{"--http-header-fields=" + headers}
-
-	if subFile != "" {
-		args = append(args, "--sub-file="+subFile)
-	}
-
-	args = append(args, sourceFile)
-
-	mpvCmd := exec.Command("mpv", args...)
-
-	if err := mpvCmd.Run(); err != nil {
-		return errMsg{err}
-	}
-
-	return fetchEpisodes(animeId) // refetch epiodes after finish watching/quiting mpv
+	return fetchEpisodes(animeId) // refetch epiodes after finish watching
 }

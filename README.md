@@ -48,6 +48,7 @@ anigarden
 - [x] watch anime
 - [x] add loading spinners
 - [x] add favorites/watch list
+- [ ] use browser as defualt media player
 - [ ] add themes/config
 - [ ] use sakura instead of mpv
 - [ ] add the anime poster image to info page (maybe)
