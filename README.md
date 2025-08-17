@@ -11,7 +11,7 @@ Browse, search, and watch anime right in the comfort of your terminal.
 - **Anime View:** See details about an anime and its episodes.  
 - **Watchlist:** Add and remove anime to watchlist.
 - **Toggle sub/dub:** Change between sub and dub.
-- **MPV Integration:** Stream and watch an anime with mpv.
+- **Watch anime:** Stream and watch an anime with mpv or [anigarden-player](https://github.com/leanghok120/anigarden-player).
 
 ## 📦 Installation
 
@@ -38,6 +38,11 @@ After installing, simply run:
 anigarden
 ```
 
+### Notes
+
+- If the video file for sub is not playable, you can try switching to dub and vice versa.
+- If mpv is not working, change clients to browser instead
+
 ## 🗒️ Todos
 
 - [x] home view
@@ -48,7 +53,7 @@ anigarden
 - [x] watch anime
 - [x] add loading spinners
 - [x] add favorites/watch list
-- [ ] use browser as defualt media player
+- [x] use browser as defualt media player
 - [ ] add themes/config
 - [ ] use sakura instead of mpv
 - [ ] add the anime poster image to info page (maybe)
