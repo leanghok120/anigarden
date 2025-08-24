@@ -1,5 +1,7 @@
 # 🌸 anigarden
 
+![homepage image](./assets/homepage.png)
+
 A cozy **TUI anime viewer** written in Go with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and the [HiAnime API](https://github.com/ghoshRitesh12/aniwatch-api).  
 
 Browse, search, and watch anime right in the comfort of your terminal.
